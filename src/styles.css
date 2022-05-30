@@ -78,7 +78,9 @@ letter-spacing: -0.333333px;
   background-color: rgb(240, 48, 34);
   margin-left: 10px;
 }
-
+.Modal{
+  position: relative;
+}
 .tweet-container {
   background-color: white;
   border-radius: 5px;
@@ -126,4 +128,8 @@ letter-spacing: -0.333333px;
 
 .likes img {
   margin-right: 5px;
+}
+.loading img {
+  width: 30px;
+  height: 20px;
 }

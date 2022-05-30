@@ -19,6 +19,9 @@ export const auth = firebase.auth();
 export const provider = new firebase.auth.GoogleAuthProvider();
 export const loginConGoogle = () => auth.signInWithPopup(provider);
 export const logout = () => auth.signOut();
+export const getCurrentUser = () => {
+  return auth.currentUser;
+};
 export default firebase;
 //firebase.initializeApp(firebaseConfig);
 // Exporta la funcionalidad de la base de datos

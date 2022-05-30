@@ -1,17 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import "./styles.css";
 import corazon from "./corazon.svg";
 import logo from "./logo.svg";
 import google from "./google.svg";
 import hello from "./hello.svg";
+import loadingicon from "./gif.gif";
+import Button from 'react-bootstrap/Button';
+import Toast from 'react-bootstrap/Toast';
 
-import { firestore, loginConGoogle, auth, logout } from "./firebase";
+import { firestore,getCurrentUser, loginConGoogle, auth, logout } from "./firebase";
 
 export default function App() {
+  const [loading] = useState(false);
+  const user1 = getCurrentUser();
   const [tweets, setTweets] = useState([]);
   const [tweet, setTweet] = useState({
     tweet: "",
-    autor: ""
+    autor: "",
+    usert: ""
   });
   const [user, setUser] = useState(null);
   useEffect(() => {
@@ -23,7 +29,8 @@ export default function App() {
             tweet: doc.data().tweet,
             autor: doc.data().autor,
             id: doc.id,
-            likes: doc.data().likes
+            likes: doc.data().likes,
+            usert: doc.data().usert
           };
         });
         setTweets(tweets);
@@ -38,9 +45,9 @@ export default function App() {
   const handleChange = (e) => {
     let nuevoTweet = {
       ...tweet,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
+      usert: user1.email
     };
-
     setTweet(nuevoTweet);
   };
 
@@ -48,13 +55,42 @@ export default function App() {
     e.preventDefault();
     // enviamos el tweet a la colección
     firestore.collection("tweets").add(tweet);
+    { !loading ? (
+      <div className="loading">
+        {" "}
+        <img src={loadingicon} alt="loading" />
+      </div>
+    ) : null};
+    <p>HEllO</p>
   };
+
+  //const sendUsert = (id) => {
+    // enviamos el tweuseret a la colección
+    //firestore.doc(`tweets/${id}`).update({ Usert: user.email });
+  //};
+
+
 
   const deleteTweet = (id) => {
     // borramos el tweet en firebase
     firestore.doc(`tweets/${id}`).delete();
   };
 
+  const ExampleToast = ({ children }) => {
+    const [show, toggleShow] = useState(false);
+  
+    return (
+      <>
+        {!show && <Button onClick={() => toggleShow(true)}>Borrar</Button>}
+        <Toast show={show} onClose={() => toggleShow(false)}>
+          <Toast.Header>
+            <strong className="mr-auto">¿Seguro de Borrar?</strong>
+          </Toast.Header>
+          <Toast.Body>{children}</Toast.Body>
+        </Toast>
+      </>
+    );
+  };
   const likeTweet = (id, likes) => {
     if (!likes) likes = 0;
     // actualizamos el tweet en firebase
@@ -63,6 +99,7 @@ export default function App() {
 
   return (
     <div className="App">
+      
       <img height="107 px" weight="361 px" src={logo} alt="" />
       {user ? (
         <>
@@ -71,7 +108,7 @@ export default function App() {
               
               <img className="user-profile-pic" src={user.photoURL} alt="" />
               <div><img src={hello} alt="" /> </div>
-              <p>{user.displayName}</p>
+              <p font="white">{user.email}</p>
               <button onClick={logout}> Log out</button>
             </div>
         </>
@@ -101,11 +138,18 @@ export default function App() {
             placeholder="Type your username"
           />
           <button className="post" onClick={sendTweet}>POST</button>
+          {tweet.tweet == null ? (
+          <div className="loading">
+            {" "}
+          <img src={loadingicon} alt="loading" />
+          </div>):null};
         </div>
       </form>
+      
       <h1>Tweets:</h1>
       {tweets.map((tweet) => {
         return (
+          
           <div className="tweet-container">
             <div className="tweet" key={tweet.id}>
               <div className="tweet-info">
@@ -113,9 +157,17 @@ export default function App() {
                 <p className="tweet-autor">por: {tweet.autor}</p>
               </div>
               <div className="acciones">
-                <span onClick={() => deleteTweet(tweet.id)} className="delete">
-                  borrar
-                </span>
+              {user ? (
+                  <>
+                    {tweet.usert == user1.email ? (
+                      
+                        <ExampleToast>
+                          <button onClick={() => deleteTweet(tweet.id)} className="delete">borrar</button>
+                        </ExampleToast>
+                      
+                    ):(<span> </span>)}
+                  </>
+                ): (<span> </span>)}
                 <span
                   onClick={() => likeTweet(tweet.id, tweet.likes)}
                   className="likes"
@@ -125,9 +177,10 @@ export default function App() {
                 </span>
               </div>
             </div>
-          </div>
+                      </div>
         );
       })}
+      
     </div>
   );
 }
